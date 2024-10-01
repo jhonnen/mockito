@@ -63,6 +63,12 @@ public class OsgiTest extends Suite {
         configuration.put(
                 Constants.FRAMEWORK_BOOTDELEGATION,
                 "org.mockito.internal.creation.bytebuddy.inject");
+        configuration.put(
+                "osgi.compatibility.bootdelegation",
+                "true");
+        configuration.put(
+                "org.osgi.framework.bundle.parent",
+                "framework");
         framework = frameworkFactory.newFramework(configuration);
         framework.init();
         BundleContext bundleContext = framework.getBundleContext();

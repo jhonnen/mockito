@@ -13,6 +13,7 @@ dependencies {
 
 configurations {
     testRuntimeBundles
+    mockitoAgent
 }
 
 dependencies {
@@ -21,11 +22,18 @@ dependencies {
     testRuntimeBundles libs.objenesis
     testRuntimeBundles tasks.testBundle.outputs.files
     testRuntimeBundles tasks.otherBundle.outputs.files
+
+    mockitoAgent(project.rootProject) {
+        transitive = false
+    }
 }
 
 test {
     jvmArgumentProviders.add(
         new RuntimeBundlesProvider(files: configurations.testRuntimeBundles.asFileTree)
+    )
+    jvmArgumentProviders.add(
+        new JavaAgentProvider(agent: files(configurations.mockitoAgent))
     )
     dependsOn configurations.testRuntimeBundles
     inputs.files(sourceSets.testBundle.allSource)
@@ -50,5 +58,16 @@ class RuntimeBundlesProvider implements CommandLineArgumentProvider {
     Iterable<String> asArguments() {
         String[] absolutePaths = files.stream().map {it.absolutePath}.toArray()
         ["-DtestRuntimeBundles=${absolutePaths.join(File.pathSeparator)}".toString()]
+    }
+}
+
+class JavaAgentProvider implements CommandLineArgumentProvider {
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    FileCollection agent
+
+    @Override
+    Iterable<String> asArguments() {
+        ["-javaagent:${agent.asPath}".toString()]
     }
 }
